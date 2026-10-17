@@ -33,10 +33,26 @@ struct QuestionTextField: UIViewRepresentable {
             action: #selector(Coordinator.editingChanged(_:)),
             for: .editingChanged
         )
+        // 横は親の幅に広がる。縦は 1 行で、余った高さを受け取らない。
         field.setContentHuggingPriority(.defaultLow, for: .horizontal)
         field.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        field.setContentHuggingPriority(.required, for: .vertical)
+        field.setContentCompressionResistancePriority(.required, for: .vertical)
         editor.field = field
         return field
+    }
+
+    func sizeThatFits(
+        _ proposal: ProposedViewSize,
+        uiView: UITextField,
+        context: Context
+    ) -> CGSize? {
+        let width = proposal.width ?? UIView.layoutFittingExpandedSize.width
+        let measured = uiView.sizeThatFits(
+            CGSize(width: width, height: UIView.layoutFittingCompressedSize.height)
+        )
+        let height = max(uiView.intrinsicContentSize.height, measured.height)
+        return CGSize(width: width, height: height)
     }
 
     func updateUIView(_ uiView: UITextField, context: Context) {
@@ -105,9 +121,15 @@ struct QuestionTextField: UIViewRepresentable {
     }
 }
 
-/// 横幅は親の提案に合わせる。プレースホルダの幅で縮まないようにする。
+/// 横幅は親の提案に合わせる。高さは 1 行で、最低でも押しやすい 44pt。
 private final class ExpandingTextField: UITextField {
     override var intrinsicContentSize: CGSize {
-        CGSize(width: UIView.noIntrinsicMetric, height: max(super.intrinsicContentSize.height, 44))
+        let fitted = super.intrinsicContentSize
+        return CGSize(width: UIView.noIntrinsicMetric, height: max(fitted.height, 44))
+    }
+
+    override func sizeThatFits(_ size: CGSize) -> CGSize {
+        let fitted = super.sizeThatFits(size)
+        return CGSize(width: fitted.width, height: max(fitted.height, 44))
     }
 }

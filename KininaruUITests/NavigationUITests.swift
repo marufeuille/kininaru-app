@@ -147,6 +147,7 @@ final class NavigationUITests: XCTestCase {
             "調べるがキーボードに隠れている search=\(search.frame) keyboard=\(keyboard.frame)"
         )
         XCTAssertTrue(search.isEnabled)
+        assertQuestionFieldIsOneLine(in: app, note: orientation == .portrait ? "縦" : "横")
 
         let screenHeight = max(app.frame.height, app.windows.firstMatch.frame.height)
         let keyboardHeight = keyboard.frame.height
@@ -162,7 +163,23 @@ final class NavigationUITests: XCTestCase {
                 "調べるがキーボードより下にある search=\(search.frame) keyboard=\(keyboard.frame)"
             )
         }
-        saveScreenshot(shot)
+        saveScreenshot(shot, in: app)
+    }
+
+    /// 1 行分。340pt 級に伸びておらず、消えるほど低くもない。
+    private func assertQuestionFieldIsOneLine(in app: XCUIApplication, note: String) {
+        let field = questionField(in: app)
+        let height = field.frame.height
+        XCTAssertGreaterThanOrEqual(
+            height,
+            34,
+            "\(note)の入力欄が低すぎる height=\(height) frame=\(field.frame)"
+        )
+        XCTAssertLessThanOrEqual(
+            height,
+            68,
+            "\(note)の入力欄が高すぎる height=\(height) frame=\(field.frame)"
+        )
     }
 
     private func rotate(to orientation: UIDeviceOrientation) {
@@ -232,22 +249,44 @@ final class NavigationUITests: XCTestCase {
         XCTAssertFalse(element("searchButton", in: app).isEnabled)
     }
 
-    private func saveScreenshot(_ name: String) {
+    private func saveScreenshot(_ name: String, in app: XCUIApplication) {
         let shot = XCUIScreen.main.screenshot()
         let attachment = XCTAttachment(screenshot: shot)
         attachment.name = name
         attachment.lifetime = .keepAlways
         add(attachment)
 
+        // 13 インチの実行で上書きしない。ドキュメント用は 11 インチだけ残す。
+        guard isElevenInchPad(app) else { return }
+
+        let data = uprightPNG(from: shot.image)
         let directories = [
             ProcessInfo.processInfo.environment["KININARU_SCREENSHOT_DIR"],
             "/tmp/kininaru-ui-screenshots",
         ].compactMap { $0 }.filter { !$0.isEmpty }
-        let data = shot.pngRepresentation
         for directory in directories {
             let folder = URL(fileURLWithPath: directory, isDirectory: true)
             try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
             try? data.write(to: folder.appendingPathComponent("\(name).png"))
         }
+    }
+
+    /// 短辺 834pt が 11 インチ、1032pt が 13 インチ。
+    private func isElevenInchPad(_ app: XCUIApplication) -> Bool {
+        let window = app.windows.firstMatch.frame
+        let bounds = window.width > 1 ? window : app.frame
+        return min(bounds.width, bounds.height) < 900
+    }
+
+    /// PNG は向きフラグを落とすことがある。ピクセルを正立にしてから書く。
+    private func uprightPNG(from image: UIImage) -> Data {
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = image.scale
+        format.opaque = false
+        let renderer = UIGraphicsImageRenderer(size: image.size, format: format)
+        let upright = renderer.image { _ in
+            image.draw(in: CGRect(origin: .zero, size: image.size))
+        }
+        return upright.pngData() ?? image.pngData() ?? Data()
     }
 }

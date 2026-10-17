@@ -75,6 +75,7 @@ struct QuestionView: View {
                 QuestionTextField(text: $model.draft, editor: fieldEditor) {
                     model.submitQuestion()
                 }
+                .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, minHeight: 44)
 
                 micButton

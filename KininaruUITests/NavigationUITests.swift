@@ -20,6 +20,36 @@ final class NavigationUITests: XCTestCase {
         field.tap()
         field.typeText("   ")
         XCTAssertFalse(search.isEnabled)
+        XCTAssertFalse(element("micButton", in: app).isEnabled)
+        XCTAssertTrue(app.staticTexts["usageCount"].waitForExistence(timeout: 5))
+    }
+
+    func testUsageCountIncrementsOnSearch() {
+        let app = launch(
+            orientation: .portrait,
+            arguments: ["-resetLocalUsageCount"]
+        )
+        XCTAssertEqual(labeledText("usageCount", in: app).label, "つかった回数: 0")
+
+        ask("なぜ空は青いの", in: app)
+        element("nextQuestionButton", in: app).tap()
+        XCTAssertTrue(app.staticTexts["questionHeading"].waitForExistence(timeout: 5))
+        XCTAssertEqual(labeledText("usageCount", in: app).label, "つかった回数: 1")
+
+        ask("月はなぜ光るの", in: app)
+        element("nextQuestionButton", in: app).tap()
+        XCTAssertEqual(labeledText("usageCount", in: app).label, "つかった回数: 2")
+    }
+
+    func testSearchStaysHittableAboveKeyboardInPortrait() {
+        assertSearchStaysHittableAboveKeyboard(orientation: .portrait, shot: "question-portrait-keyboard")
+    }
+
+    func testSearchStaysHittableAboveKeyboardInLandscape() {
+        assertSearchStaysHittableAboveKeyboard(
+            orientation: .landscapeLeft,
+            shot: "question-landscape-keyboard"
+        )
     }
 
     func testQuestionToAnswerToNextQuestion() {
@@ -79,11 +109,60 @@ final class NavigationUITests: XCTestCase {
         assertDraftCleared(in: app)
     }
 
-    private func launch(orientation: UIDeviceOrientation) -> XCUIApplication {
+    private func launch(
+        orientation: UIDeviceOrientation,
+        arguments: [String] = []
+    ) -> XCUIApplication {
         let app = XCUIApplication()
+        app.launchArguments = arguments
         app.launch()
         rotate(to: orientation)
         return app
+    }
+
+    private func assertSearchStaysHittableAboveKeyboard(
+        orientation: UIDeviceOrientation,
+        shot: String
+    ) {
+        let app = launch(orientation: orientation)
+        let field = questionField(in: app)
+        field.tap()
+
+        let keyboard = app.keyboards.firstMatch
+        if !keyboard.waitForExistence(timeout: 4) {
+            field.tap()
+        }
+        XCTAssertTrue(keyboard.waitForExistence(timeout: 8), "キーボードが出ていない")
+        let key = app.keys.firstMatch
+        XCTAssertTrue(key.waitForExistence(timeout: 8), "キーボードのキーが出ていない")
+
+        let search = element("searchButton", in: app)
+        XCTAssertFalse(search.isEnabled)
+
+        field.typeText("空はなぜ青いの")
+        let ready = NSPredicate(format: "isHittable == true AND isEnabled == true")
+        wait(for: [XCTNSPredicateExpectation(predicate: ready, object: search)], timeout: 5)
+        XCTAssertTrue(
+            search.isHittable,
+            "調べるがキーボードに隠れている search=\(search.frame) keyboard=\(keyboard.frame)"
+        )
+        XCTAssertTrue(search.isEnabled)
+
+        let screenHeight = max(app.frame.height, app.windows.firstMatch.frame.height)
+        let keyboardHeight = keyboard.frame.height
+        let plausibleKeyboard = keyboardHeight > 120 && keyboardHeight < screenHeight * 0.75
+        if plausibleKeyboard {
+            XCTAssertFalse(
+                search.frame.intersects(keyboard.frame),
+                "調べるがキーボードと重なっている search=\(search.frame) keyboard=\(keyboard.frame)"
+            )
+            XCTAssertLessThanOrEqual(
+                search.frame.maxY,
+                keyboard.frame.minY + 1,
+                "調べるがキーボードより下にある search=\(search.frame) keyboard=\(keyboard.frame)"
+            )
+        }
+        saveScreenshot(shot)
     }
 
     private func rotate(to orientation: UIDeviceOrientation) {
@@ -147,9 +226,28 @@ final class NavigationUITests: XCTestCase {
         let field = questionField(in: app)
         let value = field.value as? String ?? ""
         XCTAssertTrue(
-            value.isEmpty || value == "質問を入力",
+            value.isEmpty || value == "質問を入力" || value == "質問を入力してください",
             "入力欄が空ではない: \(value)"
         )
         XCTAssertFalse(element("searchButton", in: app).isEnabled)
+    }
+
+    private func saveScreenshot(_ name: String) {
+        let shot = XCUIScreen.main.screenshot()
+        let attachment = XCTAttachment(screenshot: shot)
+        attachment.name = name
+        attachment.lifetime = .keepAlways
+        add(attachment)
+
+        let directories = [
+            ProcessInfo.processInfo.environment["KININARU_SCREENSHOT_DIR"],
+            "/tmp/kininaru-ui-screenshots",
+        ].compactMap { $0 }.filter { !$0.isEmpty }
+        let data = shot.pngRepresentation
+        for directory in directories {
+            let folder = URL(fileURLWithPath: directory, isDirectory: true)
+            try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+            try? data.write(to: folder.appendingPathComponent("\(name).png"))
+        }
     }
 }

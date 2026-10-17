@@ -8,17 +8,22 @@ final class AppModel {
     var path: [Route]
     var microphoneNote: String?
 
+    /// 調べた回数。質問画面に出す。回数では止めない。
+    private(set) var usageCount: Int
+
     let speech: any SpeechCapturing
     let sources: any SourceFetching
     let answers: any AnswerGenerating
     let history: any HistoryStoring
+    private let usage: any UsageCounting
 
     init(
         draft: String = "",
         speech: any SpeechCapturing = UnconfiguredSpeechCapture(),
         sources: any SourceFetching = UnconfiguredSourceFetcher(),
         answers: any AnswerGenerating = PlaceholderAnswerGenerator(),
-        history: any HistoryStoring = PlaceholderHistoryStore()
+        history: any HistoryStoring = PlaceholderHistoryStore(),
+        usage: any UsageCounting = DeviceUsageCounter()
     ) {
         self.draft = draft
         self.path = []
@@ -27,6 +32,8 @@ final class AppModel {
         self.sources = sources
         self.answers = answers
         self.history = history
+        self.usage = usage
+        self.usageCount = usage.count
     }
 
     var canSearch: Bool {
@@ -42,8 +49,10 @@ final class AppModel {
     }
 
     func submitQuestion() {
-        let question = QuestionDraft.normalized(draft)
-        guard QuestionDraft.canSearch(question) else { return }
+        guard let question = QuestionDraft.submitText(visible: draft) else { return }
+        usage.increment()
+        usageCount = usage.count
+        // 答えの仮実装には質問を渡す。通信はしない。原文を外に出さない作りは検索語づくりと S3 で行う。
         let body = answers.answer(for: question, sources: collectedSources())
         path.append(.answer(AnswerPresentation(question: question, body: body)))
     }

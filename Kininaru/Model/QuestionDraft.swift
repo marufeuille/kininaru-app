@@ -10,27 +10,32 @@ enum QuestionDraft {
     }
 
     /// 画面に見えている文字列から、調べる対象を決める。空白だけなら調べない。
+    /// `visible` は `UITextField.text`。変換中の文字もこの中に入っている。
     static func submitText(visible: String) -> String? {
         let text = normalized(visible)
         return text.isEmpty ? nil : text
     }
-
-    /// 確定済みと変換中を、見えている順につなぐ。変換中だけは落とさない。
-    /// `committed` がすでに `marked` で終わっているときは、二重に足さない。
-    static func visibleText(committed: String, marked: String) -> String {
-        if marked.isEmpty || committed.hasSuffix(marked) {
-            return committed
-        }
-        return committed + marked
-    }
 }
 
 enum QuestionFieldSync {
-    /// 変換中に外の文字列を欄へ戻すと、未確定の文字が消える。戻さない。
+    /// 外から欄へ書き戻す文字列。変換中は、入力を消すとき以外は触らない。
+    /// 空文字を拒むと、つぎの質問でも変換中の文字が欄に残る。
     static func textToApply(current: String, isComposing: Bool, external: String) -> String? {
-        if isComposing || current == external {
+        if current == external {
+            return nil
+        }
+        if external.isEmpty {
+            return ""
+        }
+        if isComposing {
             return nil
         }
         return external
+    }
+
+    /// 編集が終わったときにモデルと欄へ残す文字列。
+    /// モデルがすでに空なら、欄の古い文字は戻さない。
+    static func textAfterEndEditing(draft: String, fieldText: String) -> String {
+        draft.isEmpty ? "" : fieldText
     }
 }

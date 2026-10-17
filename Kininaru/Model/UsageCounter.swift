@@ -19,9 +19,12 @@ final class DeviceUsageCounter: UsageCounting {
         processArguments: [String] = ProcessInfo.processInfo.arguments
     ) {
         self.defaults = defaults
+        // UI テストが回数を消すための引数。Release では無視する。
+        #if DEBUG
         if processArguments.contains(Self.resetArgument) {
             defaults.removeObject(forKey: Self.storageKey)
         }
+        #endif
     }
 
     var count: Int {

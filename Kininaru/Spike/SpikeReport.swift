@@ -273,14 +273,39 @@ enum SpikeReportMarkdown {
     }
 
     static func seconds(_ value: Double?) -> String {
-        guard let value else { return "—" }
-        return String(format: "%.3f", locale: Locale(identifier: "en_US_POSIX"), value)
+        guard let value, value.isFinite else { return "—" }
+        return fixed(value, fractionDigits: 3)
     }
 
     static func mebibytes(_ bytes: UInt64?) -> String {
         guard let bytes else { return "—" }
         let value = Double(bytes) / 1024.0 / 1024.0
-        return String(format: "%.1f", locale: Locale(identifier: "en_US_POSIX"), value)
+        guard value.isFinite else { return "—" }
+        return fixed(value, fractionDigits: 1)
+    }
+
+    /// `String(format:locale:)` はロケール引数で桁がずれることがある。
+    /// 書き出しは常に ASCII の小数点と、指定した桁数にする。
+    static func fixed(_ value: Double, fractionDigits: Int) -> String {
+        let digits = max(0, min(fractionDigits, 8))
+        let sign = value < 0 ? "-" : ""
+        let magnitude = abs(value)
+        var scale = 1.0
+        for _ in 0..<digits {
+            scale *= 10
+        }
+        let scaled = (magnitude * scale).rounded(.toNearestOrAwayFromZero)
+        guard scaled.isFinite, scaled <= Double(Int.max) else { return "—" }
+        let scaleInt = max(Int(scale.rounded()), 1)
+        let scaledInt = Int(scaled)
+        let whole = scaledInt / scaleInt
+        let fraction = scaledInt % scaleInt
+        guard digits > 0 else { return "\(sign)\(whole)" }
+        var fractionText = String(fraction)
+        if fractionText.count < digits {
+            fractionText = String(repeating: "0", count: digits - fractionText.count) + fractionText
+        }
+        return "\(sign)\(whole).\(fractionText)"
     }
 
     private static func iso8601(_ date: Date) -> String {

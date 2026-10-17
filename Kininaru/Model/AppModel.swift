@@ -6,7 +6,6 @@ import Observation
 final class AppModel {
     var draft: String
     var path: [Route]
-    var microphoneNote: String?
 
     /// 調べた回数。質問画面に出す。回数では止めない。
     private(set) var usageCount: Int
@@ -27,7 +26,6 @@ final class AppModel {
     ) {
         self.draft = draft
         self.path = []
-        self.microphoneNote = nil
         self.speech = speech
         self.sources = sources
         self.answers = answers
@@ -71,12 +69,7 @@ final class AppModel {
 
     func askNextQuestion() {
         draft = ""
-        microphoneNote = nil
         path.removeAll()
-    }
-
-    func noteMicrophone() {
-        microphoneNote = "音声入力は、このあとで使えるようにします。"
     }
 
     /// S3 で `sources.fetchSources` を呼ぶ場所。S0 は空のまま返し、通信しない。

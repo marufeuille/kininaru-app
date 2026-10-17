@@ -1,3 +1,4 @@
+import UIKit
 import XCTest
 @testable import Kininaru
 
@@ -45,7 +46,6 @@ final class AppModelTests: XCTestCase {
 
         model.askNextQuestion()
         XCTAssertEqual(model.draft, "")
-        XCTAssertNil(model.microphoneNote)
         XCTAssertTrue(model.path.isEmpty)
         XCTAssertFalse(model.canSearch)
     }
@@ -65,44 +65,43 @@ final class AppModelTests: XCTestCase {
         XCTAssertEqual(presentation.body, "独自の答え")
     }
 
-    func testMicrophoneDoesNotRequestPermission() {
-        let model = AppModel()
+    func testSpeechStaysUnconfigured() {
+        let model = AppModel(usage: MemoryUsage())
         XCTAssertFalse(model.speech.isConfigured)
         XCTAssertEqual(model.microphoneAvailability, "まだ使えません")
-
-        model.noteMicrophone()
-        XCTAssertEqual(model.microphoneNote, "音声入力は、このあとで使えるようにします。")
+        model.draft = "空はなぜ青いの"
+        model.submitQuestion()
         XCTAssertFalse(model.speech.isConfigured)
     }
 
-    func testMarkedTextStaysInTheSubmission() {
+    func testFieldTextIncludesMarkedComposition() {
+        let field = UITextField(frame: CGRect(x: 0, y: 0, width: 240, height: 44))
+        field.setMarkedText("そら", selectedRange: NSRange(location: 2, length: 0))
+        XCTAssertNotNil(field.markedTextRange)
+        XCTAssertEqual(field.text, "そら")
+        XCTAssertEqual(QuestionDraft.submitText(visible: field.text ?? ""), "そら")
+
+        // つぎの質問で空にするときは、変換中でも欄を消す。消さないと前の文字が残る。
         XCTAssertEqual(
-            QuestionDraft.visibleText(committed: "空は", marked: "なぜ"),
-            "空はなぜ"
+            QuestionFieldSync.textToApply(current: field.text ?? "", isComposing: true, external: ""),
+            ""
         )
-        XCTAssertEqual(
-            QuestionDraft.visibleText(committed: "空はなぜ", marked: "なぜ"),
-            "空はなぜ"
-        )
-        XCTAssertEqual(
-            QuestionDraft.submitText(
-                visible: QuestionDraft.visibleText(committed: "", marked: "そら")
-            ),
-            "そら"
-        )
-        let visible = QuestionDraft.visibleText(committed: "月は", marked: "なんで")
-        XCTAssertEqual(QuestionDraft.submitText(visible: visible), "月はなんで")
-        XCTAssertNotEqual(QuestionDraft.submitText(visible: visible), "月は")
-        XCTAssertNil(
-            QuestionDraft.submitText(
-                visible: QuestionDraft.visibleText(committed: " \n", marked: "　")
-            )
-        )
+        field.text = ""
+        XCTAssertNil(field.markedTextRange)
+        XCTAssertEqual(field.text ?? "", "")
     }
 
-    func testFieldSyncDoesNotOverwriteComposition() {
+    func testEndEditingDoesNotRestoreClearedDraft() {
+        XCTAssertEqual(
+            QuestionFieldSync.textAfterEndEditing(draft: "", fieldText: "そら"),
+            ""
+        )
+        XCTAssertEqual(
+            QuestionFieldSync.textAfterEndEditing(draft: "そら", fieldText: "そら"),
+            "そら"
+        )
         XCTAssertNil(
-            QuestionFieldSync.textToApply(current: "そら", isComposing: true, external: "")
+            QuestionFieldSync.textToApply(current: "そら", isComposing: true, external: "空")
         )
         XCTAssertNil(
             QuestionFieldSync.textToApply(current: "空", isComposing: false, external: "空")
@@ -111,19 +110,6 @@ final class AppModelTests: XCTestCase {
             QuestionFieldSync.textToApply(current: "空", isComposing: false, external: ""),
             ""
         )
-    }
-
-    func testSubmitWhileComposingUsesVisibleText() {
-        let model = AppModel(usage: MemoryUsage())
-        model.draft = QuestionDraft.visibleText(committed: "空は", marked: "なぜ")
-        model.submitQuestion()
-
-        guard case .answer(let presentation) = model.path.last else {
-            return XCTFail("答えへ進んでいない")
-        }
-        XCTAssertEqual(presentation.question, "空はなぜ")
-        XCTAssertEqual(model.usageCount, 1)
-        XCTAssertFalse(model.speech.isConfigured)
     }
 
     func testUsageCountIncrementsAndNeverBlocks() {

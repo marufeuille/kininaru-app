@@ -2,6 +2,7 @@ import SwiftUI
 
 struct QuestionView: View {
     @Bindable var model: AppModel
+    @State private var fieldEditor = QuestionFieldEditor()
     @ScaledMetric(relativeTo: .title2) private var micSide: CGFloat = 80
     @ScaledMetric(relativeTo: .body) private var searchMinHeight: CGFloat = 56
     #if DEBUG
@@ -69,28 +70,20 @@ struct QuestionView: View {
 
     /// 調べるは入力欄の下、画面下端に置く。キーボードの安全領域の上に残るので、縦でも横でも隠れない。
     private var inputBar: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            if let microphoneNote = model.microphoneNote {
-                Text(microphoneNote)
-                    .font(.body)
-                    .foregroundStyle(.secondary)
-                    .accessibilityIdentifier("micNote")
-            }
-            VStack(alignment: .leading, spacing: 12) {
-                HStack(alignment: .center, spacing: 16) {
-                    QuestionTextField(text: $model.draft) {
-                        model.submitQuestion()
-                    }
-                    .frame(maxWidth: .infinity, minHeight: 44)
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(alignment: .center, spacing: 16) {
+                QuestionTextField(text: $model.draft, editor: fieldEditor) {
+                    model.submitQuestion()
+                }
+                .frame(maxWidth: .infinity, minHeight: 44)
 
-                    micButton
-                }
-                HStack(alignment: .center, spacing: 16) {
-                    searchButton
-                    Color.clear
-                        .frame(width: micSide, height: 1)
-                        .accessibilityHidden(true)
-                }
+                micButton
+            }
+            HStack(alignment: .center, spacing: 16) {
+                searchButton
+                Color.clear
+                    .frame(width: micSide, height: 1)
+                    .accessibilityHidden(true)
             }
         }
         .padding(.horizontal, 16)
@@ -122,6 +115,8 @@ struct QuestionView: View {
 
     private var searchButton: some View {
         Button {
+            // 変換中に調べると、確定前の範囲が残って次の表示へ古い文字が戻ることがある。先に確定する。
+            fieldEditor.commitComposition()
             model.submitQuestion()
         } label: {
             Text("調べる")

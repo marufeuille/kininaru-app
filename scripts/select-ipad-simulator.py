@@ -33,7 +33,28 @@ def name_rank(name):
     return 0
 
 
+def screen_inches(name):
+    if re.search(r"11-inch|11インチ", name):
+        return 11
+    if re.search(r"13-inch|13インチ", name):
+        return 13
+    return None
+
+
+def requested_inches(argv):
+    if len(argv) == 1:
+        return None
+    if len(argv) == 3 and argv[1] == "--inches" and argv[2] in {"11", "13"}:
+        return int(argv[2])
+    print("使い方: select-ipad-simulator.py [--inches 11|13]", file=sys.stderr)
+    return "invalid"
+
+
 def main():
+    inches = requested_inches(sys.argv)
+    if inches == "invalid":
+        return 2
+
     sdk = sdk_version()
     print(f"iOS Simulator SDK {'.'.join(str(part) for part in sdk)}", file=sys.stderr)
     payload = json.loads(
@@ -51,6 +72,9 @@ def main():
             name = device.get("name", "")
             if not device.get("isAvailable") or "iPad" not in name:
                 continue
+            size = screen_inches(name)
+            if inches is not None and size != inches:
+                continue
             candidates.append(
                 {
                     "version": version,
@@ -62,7 +86,8 @@ def main():
             )
 
     if not candidates:
-        print("選択中の Xcode で使える iPad シミュレータがありません。", file=sys.stderr)
+        label = f"{inches} インチの " if inches is not None else ""
+        print(f"選択中の Xcode で使える {label}iPad シミュレータがありません。", file=sys.stderr)
         return 1
 
     candidates.sort(

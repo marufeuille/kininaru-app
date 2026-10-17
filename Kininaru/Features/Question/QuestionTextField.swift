@@ -1,9 +1,19 @@
 import SwiftUI
 import UIKit
 
+/// 調べるボタンから、変換を確定して欄の文字列をモデルへ写す。
+final class QuestionFieldEditor {
+    fileprivate weak var field: UITextField?
+
+    func commitComposition() {
+        field?.resignFirstResponder()
+    }
+}
+
 /// 質問の入力欄。日本語 IME の変換中も、見えている文字を保つ。
 struct QuestionTextField: UIViewRepresentable {
     @Binding var text: String
+    var editor: QuestionFieldEditor
     var onSubmit: () -> Void
 
     func makeUIView(context: Context) -> UITextField {
@@ -25,11 +35,13 @@ struct QuestionTextField: UIViewRepresentable {
         )
         field.setContentHuggingPriority(.defaultLow, for: .horizontal)
         field.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        editor.field = field
         return field
     }
 
     func updateUIView(_ uiView: UITextField, context: Context) {
         context.coordinator.parent = self
+        editor.field = uiView
         uiView.font = .preferredFont(forTextStyle: .body)
         if let replacement = QuestionFieldSync.textToApply(
             current: uiView.text ?? "",
@@ -61,7 +73,17 @@ struct QuestionTextField: UIViewRepresentable {
         }
 
         func textFieldDidEndEditing(_ textField: UITextField) {
-            sync(textField)
+            // 調べたあとに draft を空にした直後、終了通知が古い文字を戻すことがある。空なら欄も消す。
+            let next = QuestionFieldSync.textAfterEndEditing(
+                draft: parent.text,
+                fieldText: textField.text ?? ""
+            )
+            if textField.text != next {
+                textField.text = next
+            }
+            if parent.text != next {
+                parent.text = next
+            }
         }
 
         func textFieldShouldReturn(_ textField: UITextField) -> Bool {

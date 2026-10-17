@@ -25,9 +25,9 @@ enum RubyAttributedString {
                     kCTForegroundColorAttributeName: baseColor.cgColor,
                 ] as CFDictionary
                 let ruby = CTRubyAnnotationCreateWithAttributes(
-                    kCTRubyAlignmentAuto,
-                    kCTRubyOverhangAuto,
-                    kCTRubyPositionBefore,
+                    CTRubyAlignment.auto,
+                    CTRubyOverhang.auto,
+                    CTRubyPosition.before,
                     reading as CFString,
                     attributes
                 )

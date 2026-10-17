@@ -42,13 +42,15 @@ enum FuriganaReading {
     /// 日本語の転写はローマ字のことが多く、そのままではルビに使えない。
     static func tokenize(_ text: String) -> [FuriganaToken] {
         let ns = text as NSString
-        let tokenizer = CFStringTokenizerCreate(
+        guard let tokenizer = CFStringTokenizerCreate(
             kCFAllocatorDefault,
             text as CFString,
             CFRange(location: 0, length: ns.length),
             kCFStringTokenizerUnitWord,
             Locale(identifier: "ja_JP") as CFLocale
-        )
+        ) else {
+            return []
+        }
         var tokens: [FuriganaToken] = []
         while true {
             let kind = CFStringTokenizerAdvanceToNextToken(tokenizer)

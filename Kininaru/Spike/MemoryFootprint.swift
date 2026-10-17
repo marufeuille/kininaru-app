@@ -5,7 +5,10 @@ import Foundation
 enum MemoryFootprint {
     static func bytes() -> UInt64 {
         var info = task_vm_info_data_t()
-        var count = mach_msg_type_number_t(TASK_VM_INFO_COUNT)
+        // TASK_VM_INFO_COUNT はマクロなので、Swift からは同じ式を書く。
+        var count = mach_msg_type_number_t(
+            MemoryLayout<task_vm_info_data_t>.stride / MemoryLayout<integer_t>.stride
+        )
         let result: kern_return_t = withUnsafeMutablePointer(to: &info) { pointer in
             pointer.withMemoryRebound(to: integer_t.self, capacity: Int(count)) { rebound in
                 task_info(mach_task_self_, task_flavor_t(TASK_VM_INFO), rebound, &count)

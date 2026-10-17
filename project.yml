@@ -25,6 +25,10 @@ targets:
     deploymentTarget: "17.0"
     sources:
       - path: Kininaru
+        excludes:
+          - "Spike/Resources/**"
+      - path: Kininaru/Spike/Resources
+        buildPhase: resources
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.marufeuille.kininaru
@@ -40,6 +44,11 @@ targets:
         INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: "NO"
         INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
+        INFOPLIST_KEY_NSSpeechRecognitionUsageDescription: "計測画面で、端末の中だけで音声認識できるかを調べます。音声はサーバに送りません。"
+        INFOPLIST_KEY_NSMicrophoneUsageDescription: "計測画面で、マイクの音声を端末の中だけで認識できるかを調べます。質問画面では使いません。"
+      configs:
+        Debug:
+          SWIFT_ACTIVE_COMPILATION_CONDITIONS: DEBUG
   KininaruTests:
     type: bundle.unit-test
     platform: iOS
@@ -53,6 +62,8 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.marufeuille.kininaru.tests
         GENERATE_INFOPLIST_FILE: YES
         TARGETED_DEVICE_FAMILY: "2"
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Kininaru.app/Kininaru"
+        BUNDLE_LOADER: "$(TEST_HOST)"
   KininaruUITests:
     type: bundle.ui-testing
     platform: iOS

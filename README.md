@@ -46,6 +46,27 @@ brew install xcodegen
 
 Team は手元の Mac だけで設定します。リポジトリのプロジェクトには書きません。
 
+## 計測画面（実機）
+
+S1 の数値は、2025 年の無印 iPad (A16) で取ります。識別子は Wi-Fi が `iPad15,7`、Wi-Fi + Cellular が `iPad15,8` です。シミュレータの秒数とメモリは使いません。
+
+計測は Debug ビルドだけから開きます。Xcode の Run は通常 Debug です。Release には歯車が出ません。子ども向けの質問の流れには入れていません。
+
+答えの理由コード（`deviceNotEligible` など）を取るには、Xcode 26 以降でビルドし、検証機を iPadOS 26 以降にしてください。Xcode 16 系の SDK には FoundationModels が無いので、そのビルドは `sdkMissing` になります。Xcode 26 で作ったバイナリは FoundationModels をリンクします。iPadOS 26 より前の端末では、起動できないことがあります。
+
+1. `xcodegen generate` のあと、Xcode でプロジェクトを開く
+2. 上の「自分の iPad で動かす」と同じように Team を選び、接続した iPad を実行先にする
+3. Debug で Run する
+4. 質問画面の左上の歯車を押す
+5. 「3回測る」を押す。音声認識の許可を聞かれたら許可する。許可を待っている時間は秒数に入らない
+6. 各プローブは 3 回連続で、1 回の中に初回とウォームがある。画面と Markdown の表は、その 3 回の中央値
+7. マイクは自動では測らない。測るときは「マイクで4秒測る」を押し、その 4 秒のあいだ日本語で話す。必要なら 3 回押す
+8. 「Markdown をコピー」か「Markdown を共有」で結果を渡す。JSON も同じ場所にある
+
+もう一度測ると、前の結果は置き換わります。マイクの結果は、そのあとに足せます。
+
+同梱の音声は、espeak-ng で作った約 7 秒の日本語です。作り直すときは `bash scripts/generate-speech-sample.sh` です。認識の精度を見るための音ではありません。
+
 ## テスト
 
 GitHub Actions が、macOS 上の iPad シミュレータで同じ確認をします。手元では次を実行します。

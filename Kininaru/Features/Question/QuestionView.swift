@@ -2,6 +2,9 @@ import SwiftUI
 
 struct QuestionView: View {
     @Bindable var model: AppModel
+    #if DEBUG
+    @State private var showsMeasurement = false
+    #endif
 
     var body: some View {
         ScrollView {
@@ -25,6 +28,20 @@ struct QuestionView: View {
         .navigationTitle("質問")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            #if DEBUG
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    showsMeasurement = true
+                } label: {
+                    Image(systemName: "gearshape")
+                        .font(.body)
+                        .frame(minWidth: 44, minHeight: 44)
+                }
+                .accessibilityLabel("計測")
+                .accessibilityHint("開発用の計測画面を開きます")
+                .accessibilityIdentifier("measurementButton")
+            }
+            #endif
             ToolbarItem(placement: .topBarTrailing) {
                 Button("履歴") {
                     model.showHistory()
@@ -32,6 +49,11 @@ struct QuestionView: View {
                 .accessibilityIdentifier("historyButton")
             }
         }
+        #if DEBUG
+        .navigationDestination(isPresented: $showsMeasurement) {
+            MeasurementView()
+        }
+        #endif
     }
 
     /// 調べるは入力欄の右、画面下端に置く。キーボードはこの領域の外なので、縦でも横でも隠れない。

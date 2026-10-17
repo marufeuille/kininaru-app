@@ -1,0 +1,23 @@
+.DS_Store
+__pycache__/
+*.pyc
+
+# XcodeGen の生成物。正本は project.yml。
+*.xcodeproj/
+*.xcworkspace/
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+
+# ビルド成果物
+build/
+DerivedData/
+*.xcresult
+*.ipa
+*.dSYM
+*.dSYM.zip
+
+# Swift Package Manager
+.build/
+.swiftpm/
+Package.resolved

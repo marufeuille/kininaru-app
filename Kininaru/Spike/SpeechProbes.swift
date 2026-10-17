@@ -1,3 +1,4 @@
+#if DEBUG
 import AVFoundation
 import Foundation
 import Speech
@@ -510,3 +511,4 @@ private func audioDescription(_ url: URL) -> [String: String]? {
         "channels": String(file.fileFormat.channelCount),
     ]
 }
+#endif

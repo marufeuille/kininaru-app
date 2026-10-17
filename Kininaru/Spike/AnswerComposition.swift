@@ -1,3 +1,4 @@
+#if DEBUG
 import Foundation
 
 enum SystemModelAvailabilitySnapshot: Equatable {
@@ -281,20 +282,20 @@ enum FoundationModelsBridge {
     }
 
     private static func generateOnce() async throws -> String {
-        let session = LanguageModelSession(instructions: {
-            "あなたは子どもの質問に答える人です。"
-            "むずかしい言葉を使わず、2文から4文の短い日本語で答えてください。"
-            "渡された文章だけを使い、文章に無いことは書かないでください。"
-        })
+        let session = LanguageModelSession(instructions: """
+        あなたは子どもの質問に答える人です。むずかしい言葉を使わず、2文から4文の短い日本語で答えてください。渡された文章だけを使い、文章に無いことは書かないでください。
+        """)
         let question = AnswerSample.question
         let excerpt = AnswerSample.loadExcerpt().text
-        let response = try await session.respond(to: Prompt {
-            "質問: \(question)"
-            "参考にする文章:"
-            "\(excerpt)"
-            "この文章だけを使って、子どもにわかる短い答えを書いてください。"
-        })
+        let prompt = """
+        質問: \(question)
+        参考にする文章:
+        \(excerpt)
+        この文章だけを使って、子どもにわかる短い答えを書いてください。
+        """
+        let response = try await session.respond(to: prompt)
         return response.content
     }
 }
+#endif
 #endif

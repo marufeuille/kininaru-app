@@ -1,3 +1,4 @@
+#if DEBUG
 import Foundation
 
 enum SpeechAuthState: Equatable {
@@ -146,3 +147,4 @@ enum JapaneseVoicePolicy {
         voices.first { $0.language.hasPrefix("ja") && $0.quality == "default" }
     }
 }
+#endif

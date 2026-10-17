@@ -1,3 +1,4 @@
+#if DEBUG
 import Foundation
 
 enum FuriganaProbe {
@@ -72,3 +73,4 @@ enum FuriganaProbe {
         )
     }
 }
+#endif

@@ -1,3 +1,4 @@
+#if DEBUG
 import SwiftUI
 import UIKit
 
@@ -298,3 +299,4 @@ private struct FuriganaPreview: View {
         }
     }
 }
+#endif

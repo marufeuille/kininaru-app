@@ -1,3 +1,4 @@
+#if DEBUG
 import Foundation
 import Observation
 
@@ -71,3 +72,4 @@ final class SpikeModel {
         status = "マイクの計測が終わりました。自動の 3 回には入りません。"
     }
 }
+#endif

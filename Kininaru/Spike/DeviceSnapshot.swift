@@ -1,3 +1,4 @@
+#if DEBUG
 import Darwin
 import Foundation
 import UIKit
@@ -56,3 +57,4 @@ struct DeviceSnapshot: Codable, Equatable {
         )
     }
 }
+#endif

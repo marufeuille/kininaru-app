@@ -1,3 +1,4 @@
+#if DEBUG
 import Foundation
 
 enum SpikeResources {
@@ -39,3 +40,4 @@ enum AnswerSample {
         return (text, "bundle")
     }
 }
+#endif

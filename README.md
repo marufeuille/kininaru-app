@@ -50,9 +50,9 @@ Team は手元の Mac だけで設定します。リポジトリのプロジェ�
 
 S1 の数値は、2025 年の無印 iPad (A16) で取ります。識別子は Wi-Fi が `iPad15,7`、Wi-Fi + Cellular が `iPad15,8` です。シミュレータの秒数とメモリは使いません。
 
-計測は Debug ビルドだけから開きます。Xcode の Run は通常 Debug です。Release には歯車が出ません。子ども向けの質問の流れには入れていません。
+計測は Debug ビルドだけです。Xcode の Run は通常 Debug です。Release には歯車が出ません。計測のコード、同梱の音声と抜粋、音声認識とマイクの利用目的の文も Release には入りません。FoundationModels もリンクしません。製品の Release は、最低の iPadOS 17 で起動します。子ども向けの質問の流れには入れていません。
 
-答えの理由コード（`deviceNotEligible` など）を取るには、Xcode 26 以降でビルドし、検証機を iPadOS 26 以降にしてください。Xcode 16 系の SDK には FoundationModels が無いので、そのビルドは `sdkMissing` になります。Xcode 26 で作ったバイナリは FoundationModels をリンクします。iPadOS 26 より前の端末では、起動できないことがあります。
+答えの理由コード（`deviceNotEligible` など）を取るのは、Xcode 26 以降の Debug だけです。検証機は iPadOS 26 以降にしてください。Xcode 16 系の Debug は SDK に FoundationModels が無いので `sdkMissing` になります。Xcode 26 の Debug は FoundationModels をリンクします。その Debug バイナリは、iPadOS 26 より前では起動できないことがあります。Release とは別です。
 
 1. `xcodegen generate` のあと、Xcode でプロジェクトを開く
 2. 上の「自分の iPad で動かす」と同じように Team を選び、接続した iPad を実行先にする
@@ -60,7 +60,7 @@ S1 の数値は、2025 年の無印 iPad (A16) で取ります。識別子は Wi
 4. 質問画面の左上の歯車を押す
 5. 「3回測る」を押す。音声認識の許可を聞かれたら許可する。許可を待っている時間は秒数に入らない
 6. 各プローブは 3 回連続で、1 回の中に初回とウォームがある。画面と Markdown の表は、その 3 回の中央値
-7. マイクは自動では測らない。測るときは「マイクで4秒測る」を押し、その 4 秒のあいだ日本語で話す。必要なら 3 回押す
+7. マイクは自動では測らない。測るときは大人が「マイクで4秒測る」を押す。その 4 秒のあいだ日本語で話す。認識した文は計測結果に残るので、子どもには押させない。必要なら 3 回押す
 8. 「Markdown をコピー」か「Markdown を共有」で結果を渡す。JSON も同じ場所にある
 
 もう一度測ると、前の結果は置き換わります。マイクの結果は、そのあとに足せます。
@@ -69,7 +69,7 @@ S1 の数値は、2025 年の無印 iPad (A16) で取ります。識別子は Wi
 
 ## テスト
 
-GitHub Actions が、macOS 上の iPad シミュレータで同じ確認をします。手元では次を実行します。
+GitHub Actions は 2 本です。macos-15 の Xcode 16.4 で iPad シミュレータのテストと、Release に計測と FoundationModels が無いことの確認をします。iPadOS 17 のシミュレータが入っていれば、その Release の起動も見ます。macos-26 の Xcode 26 で、Debug が FoundationModels をコンパイルしてリンクすることと、Release がリンクしないことを見ます。手元では次を実行します。
 
 ```sh
 bash scripts/test-simulator.sh

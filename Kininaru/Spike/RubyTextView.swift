@@ -1,3 +1,4 @@
+#if DEBUG
 import CoreText
 import SwiftUI
 import UIKit
@@ -105,3 +106,4 @@ struct RubyLine: UIViewRepresentable {
         uiView.attributedText = RubyAttributedString.make(tokens: tokens, baseColor: .label)
     }
 }
+#endif

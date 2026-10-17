@@ -1,3 +1,4 @@
+#if DEBUG
 import Foundation
 
 enum SpikePlan {
@@ -328,3 +329,4 @@ enum SpikeExport {
         return (markdownURL, jsonURL)
     }
 }
+#endif

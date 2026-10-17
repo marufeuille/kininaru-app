@@ -1,3 +1,4 @@
+#if DEBUG
 import Foundation
 
 struct FuriganaToken: Equatable, Codable {
@@ -123,3 +124,4 @@ enum FuriganaQuality {
 
     static let renderingLimit = "ルビは CTRubyAnnotation を UIView に描いている。SwiftUI の Text では出ない。行の上にはみ出す、文字とずれる、ことがある。数値にはしない。"
 }
+#endif

@@ -1,3 +1,4 @@
+#if DEBUG
 import AVFoundation
 import Foundation
 
@@ -219,3 +220,4 @@ private final class SynthesisBox: @unchecked Sendable {
         continuation.resume(returning: timing)
     }
 }
+#endif

@@ -1,3 +1,4 @@
+#if DEBUG
 import Darwin
 import Foundation
 
@@ -61,3 +62,4 @@ enum WallClock {
         end.timeIntervalSince(start)
     }
 }
+#endif

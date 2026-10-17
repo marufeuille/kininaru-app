@@ -1,4 +1,6 @@
 name: Kininaru
+fileGroups:
+  - Kininaru/Spike/Resources
 options:
   bundleIdPrefix: com.marufeuille
   deploymentTarget:
@@ -27,8 +29,10 @@ targets:
       - path: Kininaru
         excludes:
           - "Spike/Resources/**"
-      - path: Kininaru/Spike/Resources
-        buildPhase: resources
+    postBuildScripts:
+      - name: Debug の計測リソース
+        basedOnDependencyAnalysis: false
+        script: bash "${SRCROOT}/scripts/copy-spike-resources.sh"
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.marufeuille.kininaru
@@ -44,11 +48,14 @@ targets:
         INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: "NO"
         INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
-        INFOPLIST_KEY_NSSpeechRecognitionUsageDescription: "計測画面で、端末の中だけで音声認識できるかを調べます。音声はサーバに送りません。"
-        INFOPLIST_KEY_NSMicrophoneUsageDescription: "計測画面で、マイクの音声を端末の中だけで認識できるかを調べます。質問画面では使いません。"
       configs:
         Debug:
           SWIFT_ACTIVE_COMPILATION_CONDITIONS: DEBUG
+          INFOPLIST_KEY_NSSpeechRecognitionUsageDescription: "計測画面で、端末の中だけで音声認識できるかを調べます。音声はサーバに送りません。"
+          INFOPLIST_KEY_NSMicrophoneUsageDescription: "計測画面で、マイクの音声を端末の中だけで認識できるかを調べます。質問画面では使いません。"
+        Release:
+          # フォルダ名だけだと中のファイルが残ることがあるので、段ごとに外す。
+          EXCLUDED_SOURCE_FILE_NAMES: "$(SRCROOT)/Kininaru/Spike $(SRCROOT)/Kininaru/Spike/* $(SRCROOT)/Kininaru/Spike/*/* $(SRCROOT)/Kininaru/Spike/*/*/*"
   KininaruTests:
     type: bundle.unit-test
     platform: iOS

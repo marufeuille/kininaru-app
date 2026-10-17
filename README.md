@@ -52,7 +52,7 @@ S1 の数値は、2025 年の無印 iPad (A16) で取ります。識別子は Wi
 
 計測は Debug ビルドだけです。Xcode の Run は通常 Debug です。Release には歯車が出ません。計測のコード、同梱の音声と抜粋、音声認識とマイクの利用目的の文も Release には入りません。FoundationModels もリンクしません。製品の Release は、最低の iPadOS 17 で起動します。子ども向けの質問の流れには入れていません。
 
-答えの理由コード（`deviceNotEligible` など）を取るのは、Xcode 26 以降の Debug だけです。検証機は iPadOS 26 以降にしてください。Xcode 16 系の Debug は SDK に FoundationModels が無いので `sdkMissing` になります。Xcode 26 の Debug は FoundationModels をリンクします。その Debug バイナリは、iPadOS 26 より前では起動できないことがあります。Release とは別です。
+答えの理由コード（`deviceNotEligible` など）を取るのは、Xcode 26 以降の Debug で、検証機が iPadOS 26 以降のときです。Xcode 16 系の Debug は SDK に FoundationModels が無いので `sdkMissing` になります。Xcode 26 の Debug は FoundationModels を weak link します。その Debug も iPadOS 17 で起動します。iPadOS 26 より前ではモデルを呼ばず、理由は `osTooOld` です。
 
 1. `xcodegen generate` のあと、Xcode でプロジェクトを開く
 2. 上の「自分の iPad で動かす」と同じように Team を選び、接続した iPad を実行先にする
@@ -69,7 +69,7 @@ S1 の数値は、2025 年の無印 iPad (A16) で取ります。識別子は Wi
 
 ## テスト
 
-GitHub Actions は 2 本です。macos-15 の Xcode 16.4 で iPad シミュレータのテストと、Release に計測と FoundationModels が無いことの確認をします。iPadOS 17 のシミュレータが入っていれば、その Release の起動も見ます。macos-26 の Xcode 26 で、Debug が FoundationModels をコンパイルしてリンクすることと、Release がリンクしないことを見ます。手元では次を実行します。
+GitHub Actions は 2 本です。macos-15 の Xcode 16.4 で iPad シミュレータのテストと、Release に計測と FoundationModels が無いことの確認をします。macos-26 の Xcode 26 で、Debug が FoundationModels を weak link することと、Release がリンクしないことを見ます。どちらのランナーにも iPadOS 17 のシミュレータは入っていないので、起動そのものは `otool` の最低 OS とリンクで見ます。手元では次を実行します。
 
 ```sh
 bash scripts/test-simulator.sh

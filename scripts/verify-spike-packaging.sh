@@ -164,12 +164,16 @@ if [[ "${#machos[@]}" -eq 0 ]]; then
 fi
 
 linked=0
+weak_linked=0
 has_spike_string=0
 for bin in "${machos[@]}"; do
   echo "== otool -L ${bin#"$app"/}"
   otool -L "$bin"
   if otool -L "$bin" | grep -q 'FoundationModels'; then
     linked=1
+    if otool -L "$bin" | grep 'FoundationModels' | grep -q 'weak'; then
+      weak_linked=1
+    fi
   fi
   if strings "$bin" | grep -F -q 'deviceNotEligible'; then
     has_spike_string=1
@@ -211,6 +215,10 @@ if [[ "$mode" == "release" ]]; then
 else
   if [[ "$linked" -eq 0 ]]; then
     echo "Debug が FoundationModels をリンクしていません。計測の生成コードがコンパイルされていません。" >&2
+    exit 1
+  fi
+  if [[ "$weak_linked" -eq 0 ]]; then
+    echo "Debug の FoundationModels が weak link ではありません。iPadOS 17 で起動できません。" >&2
     exit 1
   fi
   if [[ "$has_spike_string" -eq 0 ]]; then

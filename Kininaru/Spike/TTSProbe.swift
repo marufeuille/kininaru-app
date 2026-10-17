@@ -160,7 +160,7 @@ enum TTSProbe {
         )
     }
 
-    static func qualityName(_ quality: AVSpeechSynthesisVoice.Quality) -> String {
+    static func qualityName(_ quality: AVSpeechSynthesisVoiceQuality) -> String {
         switch quality {
         case .default: "default"
         case .enhanced: "enhanced"

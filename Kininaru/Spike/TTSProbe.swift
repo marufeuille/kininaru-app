@@ -128,7 +128,7 @@ enum TTSProbe {
         let timing: SynthesisTiming = await withCheckedContinuation { continuation in
             synthesizer.write(utterance) { buffer in
                 let pcm = buffer as? AVAudioPCMBuffer
-                let frames = Int(pcm?.frameLength ?? buffer.frameLength)
+                let frames = Int(pcm?.frameLength ?? 0)
                 if frames > 0 {
                     box.noteAudio(
                         frames: frames,

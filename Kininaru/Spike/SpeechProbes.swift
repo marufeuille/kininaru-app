@@ -45,7 +45,7 @@ enum MicrophoneAuthorization {
         case .denied:
             return false
         case .undetermined:
-            return await application.requestRecordPermission()
+            return await AVAudioApplication.requestRecordPermission()
         @unknown default:
             return false
         }

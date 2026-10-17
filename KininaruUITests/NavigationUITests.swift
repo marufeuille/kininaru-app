@@ -51,6 +51,14 @@ final class NavigationUITests: XCTestCase {
         )
     }
 
+    func testMeasurementScreenOpensFromGear() {
+        let app = launch(orientation: .portrait)
+        element("measurementButton", in: app).tap()
+        XCTAssertTrue(app.staticTexts["measurementHeading"].waitForExistence(timeout: 5))
+        app.navigationBars.buttons["質問"].tap()
+        XCTAssertTrue(app.staticTexts["questionHeading"].waitForExistence(timeout: 5))
+    }
+
     func testNavigationAndSearchButtonInLandscape() {
         let app = launch(orientation: .landscapeLeft)
         let search = element("searchButton", in: app)

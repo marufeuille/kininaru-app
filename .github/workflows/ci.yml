@@ -31,6 +31,9 @@ jobs:
       - name: 生成してテスト
         run: bash scripts/test-simulator.sh
 
+      - name: Release に計測が入っていないことを確認
+        run: bash scripts/verify-spike-packaging.sh release
+
       - name: 失敗時のログを残す
         if: failure()
         uses: actions/upload-artifact@v4
@@ -38,3 +41,31 @@ jobs:
           name: xcodebuild-log
           path: build/xcodebuild.log
           if-no-files-found: ignore
+
+  foundation-models:
+    name: Xcode 26 で FoundationModels をコンパイル
+    runs-on: macos-26
+    timeout-minutes: 40
+    steps:
+      - name: チェックアウト
+        uses: actions/checkout@v4
+
+      - name: Xcode 26 を選ぶ
+        run: |
+          set -eu
+          if ! selected="$(python3 scripts/select-xcode-26.py)"; then
+            ls -d /Applications/Xcode*.app || true
+            exit 1
+          fi
+          sudo xcode-select -s "$selected"
+          xcodebuild -version
+          xcodebuild -version -sdk iphonesimulator SDKVersion
+
+      - name: XcodeGen を入れる
+        run: brew install xcodegen
+
+      - name: Debug で FoundationModels をリンク
+        run: bash scripts/verify-spike-packaging.sh debug
+
+      - name: Release は FoundationModels をリンクしない
+        run: bash scripts/verify-spike-packaging.sh release

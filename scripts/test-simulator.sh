@@ -18,6 +18,8 @@ defaults write com.apple.iphonesimulator ConnectHardwareKeyboard -bool false
 xcrun simctl shutdown all || true
 
 mkdir -p build
+rm -rf /tmp/kininaru-ui-screenshots
+set +e
 xcodebuild test \
   -project Kininaru.xcodeproj \
   -scheme Kininaru \
@@ -28,3 +30,11 @@ xcodebuild test \
   CODE_SIGNING_REQUIRED=NO \
   CODE_SIGNING_ALLOWED=NO \
   | tee build/xcodebuild.log
+status=${PIPESTATUS[0]}
+set -e
+
+mkdir -p build/ui-screenshots
+if [ -d /tmp/kininaru-ui-screenshots ]; then
+  cp -R /tmp/kininaru-ui-screenshots/. build/ui-screenshots/ || true
+fi
+exit "$status"

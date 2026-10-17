@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: iPad シミュレータでビルドとテスト
+    runs-on: macos-15
+    timeout-minutes: 40
+    steps:
+      - name: チェックアウト
+        uses: actions/checkout@v4
+
+      - name: Xcode を選ぶ
+        run: |
+          sudo xcode-select -s /Applications/Xcode_16.4.app
+          xcodebuild -version
+          xcodebuild -version -sdk iphonesimulator SDKVersion
+
+      - name: XcodeGen を入れる
+        run: brew install xcodegen
+
+      - name: 生成してテスト
+        run: bash scripts/test-simulator.sh
+
+      - name: 失敗時のログを残す
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcodebuild-log
+          path: build/xcodebuild.log
+          if-no-files-found: ignore

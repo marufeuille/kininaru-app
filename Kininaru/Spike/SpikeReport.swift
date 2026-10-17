@@ -153,7 +153,8 @@ enum SpikeStats {
     }
 
     static func medianBytes(_ values: [UInt64]) -> UInt64? {
-        median(values.map(Double.init)).map { UInt64($0.rounded()) }
+        // `map(Double.init)` は Double(bitPattern:) を選び、バイト数が 0 付近になる。
+        median(values.map { Double($0) }).map { UInt64($0.rounded()) }
     }
 }
 

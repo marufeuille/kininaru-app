@@ -10,6 +10,9 @@ final class SpikeReportTests: XCTestCase {
         XCTAssertEqual(SpikeStats.median([2]), 2)
         XCTAssertEqual(SpikeStats.median([10, 30, 20]), 20)
         XCTAssertEqual(SpikeStats.median([1, 2, 3, 4]), 2.5)
+        let mebibytes = [100, 300, 200].map { UInt64($0) * 1024 * 1024 }
+        XCTAssertEqual(SpikeStats.medianBytes(mebibytes), UInt64(200) * 1024 * 1024)
+        XCTAssertEqual(SpikeStats.medianBytes([1_000, 3_000]), UInt64(2_000))
     }
 
     func testMarkdownTableUsesMedianAndDeviceNotEligible() throws {
